@@ -9,28 +9,15 @@ CHAT_ID = os.getenv("CHAT_ID")
 
 @app.route("/", methods=["POST"])
 def webhook():
-    try:
-        data = request.get_json(force=True)  # Robust JSON parsing
-        msg = data.get("message", "⚠️ No message content provided.")
-        
-        # Log for debugging
-        print("✅ Received from TradingView:", msg)
-
-        # Send message to Telegram
-        url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-        payload = {
-            "chat_id": CHAT_ID,
-            "text": msg
-        }
-        tg_response = requests.post(url, json=payload, timeout=5)
-
-        # Debug response from Telegram
-        print("📨 Telegram API response:", tg_response.status_code, tg_response.text)
-
-        return "✅ Message sent to Telegram", 200
-    except Exception as e:
-        print("❌ Error:", e)
-        return f"Error: {e}", 400
+    data = request.json
+    msg = data.get("message", "No message received.")
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+    payload = {
+        "chat_id": CHAT_ID,
+        "text": msg
+    }
+    requests.post(url, json=payload, timeout=3)
+    return "Message sent to Telegram", 200
 
 @app.route("/", methods=["GET"])
 def home():
