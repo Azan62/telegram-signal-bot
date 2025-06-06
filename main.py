@@ -9,19 +9,19 @@ CHAT_ID = os.getenv("CHAT_ID")
 
 @app.route("/", methods=["POST"])
 def webhook():
-    data = request.json
-    msg = data.get("message", "No message received.")
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-    payload = {
-        "chat_id": CHAT_ID,
-        "text": msg
-    }
-    requests.post(url, json=payload, timeout=3)
-    return "Message sent to Telegram", 200
+    try:
+        msg = ""
+        if request.is_json:
+            data = request.get_json()
+            msg = data.get("message", "No message received.")
+        else:
+            msg = request.data.decode("utf-8") or "No message received."
 
-@app.route("/", methods=["GET"])
-def home():
-    return "✅ Bot is live. Use POST to send signal.", 200
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
+        requests.post(
+            f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
+            json={"chat_id": CHAT_ID, "text": msg},
+            timeout=3
+        )
+        return "Message sent", 200
+    except Exception as e:
+        return f"Error: {e}", 500
